@@ -1,5 +1,8 @@
+#encoding:utf-8
+
 import json
 import random
+
 
 f = open("data.json")
 data = json.load(f)
@@ -45,19 +48,28 @@ for item in sample_list:
 
 print("user samples sum")
 print(len(sample_list))
-print("fail samples")
-print(len(fail))
-for n in fail:
-    print(n)
-print("cancel samples")
-print(len(cancel))
-for n in cancel:
-    print(n)
-print("suggest samples")
-print(len(suggest))
-for n in suggest:
-    print(n)
 print("success rate")
 print(100.0-((len(fail)+len(cancel)+len(suggest))/float(len(sample_list)))*100)
 print("success rate(with suggest)")
 print(100.0-((len(fail)+len(cancel))/float(len(sample_list)))*100)
+
+sample_type = raw_input("sample type(fail,cancel,suggest), 'e' to exit:")
+
+while sample_type != "e":
+    if sample_type == "fail":
+        print("fail samples")
+        print(len(fail))
+        for n in fail:
+            print(n)
+    if sample_type == "cancel":
+        print("cancel samples")
+        print(len(cancel))
+        for n in cancel:
+            print(n)
+    if sample_type == "suggest":
+        print("suggest samples")
+        print(len(suggest))
+        for n in suggest:
+            print(n)
+
+    sample_type = raw_input("sample type(fail,cancel,suggest), 'e' to exit:")
