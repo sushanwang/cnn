@@ -27,14 +27,6 @@ def flatten_list(nested):
         yield nested
 
 
-def add_dict_value(dic,k):
-    if dic.get(k):
-        dic[k] = dic[k] + 1
-    else:
-        dic[k] = 1
-    return dic
-
-
 def get_user_list_by_date(start_date):
     pre_user = []
     new_user_num = []
@@ -60,17 +52,9 @@ def get_user_list_by_date(start_date):
         dates.append(date.strftime('%Y-%m-%d'))
     return sumlist,dates,new_user_num
 
-def is_new_user_or_not(userlist,deviceid):
-    if userlist.count(deviceid):
-        return 0
-    else:
-        return 1
-
 def compute_frequency_in_seven_days(deviceid, sumlist,i):
-
     sublist = list(flatten_list(sumlist[i:i+7]))
     frequency = sublist.count(deviceid)
-
     return frequency
 
 def compute_percentage(frequency_list):
@@ -81,7 +65,6 @@ def compute_percentage(frequency_list):
 
     return frequency_dict
 
-
 if len(argv)>3:
     duration = int(argv[2])
     version = argv[3]
@@ -91,12 +74,10 @@ if len(argv)>2:
 
 start_date = argv[1]
 start_date = datetime.datetime.strptime(start_date,'%Y-%m-%d')
-#process 17 days data
 start_time = datetime.datetime.now()
 user_list,dates,new_user_number = get_user_list_by_date(start_date)
 end_time = datetime.datetime.now()
 print(end_time-start_time)
-
 
 frequency_list = []
 frequency_sum_list = []
@@ -116,10 +97,8 @@ for i in range(0,6):
     plotpic(dates[0:duration],l,"user use " + str(i) + " days in later seven days")
 
 plt.legend(loc="upper right",prop={'size':6})
-
 plt.figure(2)
 
 plotpic(dates,new_user_number,"new user")
-
 plt.legend(loc="upper right",prop={'size':6})
 plt.show()
