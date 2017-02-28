@@ -51,6 +51,7 @@ testsamplesum = {}
 unsuccesssample = {}
 fail = []
 cancel = []
+recommend = []
 suggest = []
 start_date = argv[1]
 start_date = datetime.datetime.strptime(start_date,'%Y-%m-%d')
@@ -106,7 +107,6 @@ if len(test_sample) != 0:
 sample_list = sorted(sample_list,key = lambda e:e.__getitem__('deviceid'))
 
 for item in sample_list:
-
     if item['kvs'].get('success') != "success":
 
         if item['kvs'].get('success') == "fail":
@@ -115,13 +115,15 @@ for item in sample_list:
             cancel.append(item)
     elif item['kvs'].get('src') == "suggest":
         suggest.append(item)
+    elif item['kvs'].get('src') == "recommend":
+        recommend.append(item)
 
 print("user samples sum")
 print(len(sample_list))
 print("success rate")
-print(100.0-((len(fail)+len(cancel)+len(suggest))/float(len(sample_list)))*100)
+print(100.0-((len(fail)+len(cancel)+len(suggest)+len(recommend))/float(len(sample_list)))*100)
 print("success rate(with suggest)")
-print(100.0-((len(fail)+len(cancel))/float(len(sample_list)))*100)
+print(100.0-((len(fail)+len(cancel)+len(recommend))/float(len(sample_list)))*100)
 for item in test_sample:
     if item['kvs'].get('success') != "success":
 
@@ -131,12 +133,14 @@ for item in test_sample:
             cancel.append(item)
     elif item['kvs'].get('src') == "suggest":
         suggest.append(item)
+    elif item['kvs'].get('src') == "recommend":
+        recommend.append(item)
 
 
 testsamplesum = sorted(testsamplesum.items(), key=lambda d: d[1])
 
 
-sample_type = raw_input("sample type(fail,cancel,suggest) or deviceid, 'e' to exit:")
+sample_type = raw_input("sample type(fail,cancel,suggest,recommend) or deviceid, 'e' to exit:")
 
 
 
@@ -150,6 +154,11 @@ while sample_type != "e":
         print("cancel samples")
         print(len(cancel))
         for n in cancel:
+            print('%-50s%-30s' %(n['deviceid'],n['query']))
+    if sample_type == "recommend":
+        print("recommend samples")
+        print(len(recommend))
+        for n in recommend:
             print('%-50s%-30s' %(n['deviceid'],n['query']))
     if sample_type == "suggest":
         print("suggest samples")
