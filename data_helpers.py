@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import re
 import itertools
@@ -25,7 +26,7 @@ def clean_str(string):
     return string.strip().lower()
 
 
-def load_data_and_labels():
+def load_data_and_labels(query_file):
     """
     Loads MR polarity data from files, splits the data into words and generates labels.
     Returns split sentences and labels.
@@ -46,7 +47,6 @@ def load_data_and_labels():
     print(y)
     return [x_text, y]
     """
-    query_file ='query_app.txt'
 
 
     query_list = []
@@ -70,10 +70,9 @@ def load_data_and_labels():
     counter = collections.Counter(all_words)
     count_pairs = sorted(counter.items(), key=lambda x: -x[1])
     words, _ = zip(*count_pairs)
-    words = words[:len(words)] + (' ',)
     word_num_map = dict(zip(words, range(len(words))))
     vocab_size = len(words)
-    print('vocab size:', (vocab_size))
+    print('apps size:', (vocab_size))
 
     app_vector = []
     for app in app_list:
@@ -95,8 +94,25 @@ def load_data_and_labels():
     return xdata,np.asarray(ydata),words
 
 
+def get_W_by_x_input(x_input, vocab_processor, words):
 
-
+    W = np.zeros([len(x_input), len(words)], dtype = np.float32)
+    docs = vocab_processor.reverse(x_input)
+    new_docs = []
+    for raw in docs:
+        line = ""
+        for word in raw:
+            if word != " ":
+                line += word
+        new_docs.append(line)
+    j = 0
+    for raw in new_docs:
+        for i in range(len(words)):
+            app_id = raw.count(words[i])
+            if app_id != 0:
+                W[j][i] = app_id
+        j += 1
+    return W
 
 
 

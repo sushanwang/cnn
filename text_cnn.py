@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 import tensorflow as tf
-import numpy as np
 
 
 class TextCNN(object):
@@ -15,6 +15,7 @@ class TextCNN(object):
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
         self.input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
+        self.app_b = tf.placeholder(tf.float32, [None, num_classes], name="app_b")
 
         # Keeping track of l2 regularization loss (optional)
         l2_loss = tf.constant(0.0)
@@ -60,17 +61,18 @@ class TextCNN(object):
         # Add dropout
         with tf.name_scope("dropout"):
             self.h_drop = tf.nn.dropout(self.h_pool_flat, self.dropout_keep_prob)
-
+            self.input_x_b = tf.concat([self.h_drop,self.app_b],1, name="input_x_b")
         # Final (unnormalized) scores and predictions
         with tf.name_scope("output"):
             W = tf.get_variable(
                 "W",
-                shape=[num_filters_total, num_classes],
+                shape=[num_filters_total+num_classes, num_classes],
                 initializer=tf.contrib.layers.xavier_initializer())
             b = tf.Variable(tf.constant(0.1, shape=[num_classes]), name="b")
+
             l2_loss += tf.nn.l2_loss(W)
             l2_loss += tf.nn.l2_loss(b)
-            self.scores = tf.nn.xw_plus_b(self.h_drop, W, b, name="scores")
+            self.scores = tf.nn.xw_plus_b(self.input_x_b, W, b, name = "scores")
             self.predictions = tf.argmax(self.scores, 1, name="predictions")
 
         # CalculateMean cross-entropy loss
