@@ -26,7 +26,7 @@ def clean_str(string):
     return string.strip().lower()
 
 
-def load_data_and_labels(query_file):
+def load_data_and_labels():
     """
     Loads MR polarity data from files, splits the data into words and generates labels.
     Returns split sentences and labels.
@@ -47,6 +47,8 @@ def load_data_and_labels(query_file):
     print(y)
     return [x_text, y]
     """
+    query_file ='query_app.txt'
+
 
     query_list = []
     app_list = []
@@ -107,17 +109,14 @@ def get_W_by_x_input(x_input, vocab_processor, words):
     j = 0
     for raw in new_docs:
         for i in range(len(words)):
-            if len(words[i]) > 2:
-                for k in range(len(words[i])):
-                    app_id = raw.count(words[i][k:2+k])
-                    if app_id != 0:
-                        W[j][i] = app_id
-            else:
-                app_id = raw.count(words[i])
-                if app_id != 0:
-                    W[j][i] = app_id
+            app_id = raw.count(words[i])
+            if app_id != 0:
+                W[j][i] = app_id
         j += 1
     return W
+
+
+
 
 
 

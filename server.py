@@ -11,8 +11,6 @@ from concurrent import futures
 import math
 import time
 import grpc
-
-
 import test
 from train import Train
 from eval import Eval
@@ -53,14 +51,16 @@ FLAGS._parse_flags()
 class CnnModelServicer(cnn_model_pb2_grpc.CnnModelServicer):
     def __init__(self):
         self.predictor = test.Pred(FLAGS)
+        self.predictor.restore_model()
 
     def ScoreCnnModel(self, request, context):
-        query = request.name.strip()
-        try:
-            score = self.predictor.pred(query)
-        except ValueError:
-            score = math.nan
-        return cnn_model_pb2.QueryReply(score=score)
+        query = request.query.strip()
+        score = self.predictor.pred(query)
+        for app,prob in score:
+            sl = cnn_model_pb2.ScoreList()
+            sl.query = app
+            sl.prob = prob
+            yield cnn_model_pb2.QueryReply(scorelist=sl)
 
 
 def serve():

@@ -5,7 +5,6 @@ from eval import Eval
 from test import Pred
 
 
-
 def main():
     # Parameters
     # ==================================================
@@ -55,11 +54,11 @@ def main():
         eval.load_data(FLAGS.data_file)
         eval.eval()
     elif FLAGS.mode == 'pred':
-
         if not FLAGS.data_file:
             print('valid_data is required to be provided to valid model')
             sys.exit(-1)
         pred = Pred(FLAGS)
+        pred.restore_model()
         for line in sys.stdin:
             line = line[:-1]
             try:

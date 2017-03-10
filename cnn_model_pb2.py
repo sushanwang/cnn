@@ -19,24 +19,31 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='cnn_model.proto',
   package='cnn_model',
   syntax='proto3',
-  serialized_pb=_b('\n\x0f\x63nn_model.proto\x12\tcnn_model\"\x1c\n\x0cQueryRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\"\x1b\n\nQueryReply\x12\r\n\x05score\x18\x01 \x01(\t2M\n\x08\x43nnModel\x12\x41\n\rScoreCnnModel\x12\x17.cnn_model.QueryRequest\x1a\x15.cnn_model.QueryReply\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x0f\x63nn_model.proto\x12\tcnn_model\"(\n\tScoreList\x12\r\n\x05query\x18\x01 \x01(\t\x12\x0c\n\x04prob\x18\x02 \x01(\x02\"\x1d\n\x0cQueryRequest\x12\r\n\x05query\x18\x01 \x01(\t\"5\n\nQueryReply\x12\'\n\tscorelist\x18\x01 \x01(\x0b\x32\x14.cnn_model.ScoreList2O\n\x08\x43nnModel\x12\x43\n\rScoreCnnModel\x12\x17.cnn_model.QueryRequest\x1a\x15.cnn_model.QueryReply\"\x00\x30\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
 
-_QUERYREQUEST = _descriptor.Descriptor(
-  name='QueryRequest',
-  full_name='cnn_model.QueryRequest',
+_SCORELIST = _descriptor.Descriptor(
+  name='ScoreList',
+  full_name='cnn_model.ScoreList',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='name', full_name='cnn_model.QueryRequest.name', index=0,
+      name='query', full_name='cnn_model.ScoreList.query', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='prob', full_name='cnn_model.ScoreList.prob', index=1,
+      number=2, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -53,19 +60,19 @@ _QUERYREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=30,
-  serialized_end=58,
+  serialized_end=70,
 )
 
 
-_QUERYREPLY = _descriptor.Descriptor(
-  name='QueryReply',
-  full_name='cnn_model.QueryReply',
+_QUERYREQUEST = _descriptor.Descriptor(
+  name='QueryRequest',
+  full_name='cnn_model.QueryRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='score', full_name='cnn_model.QueryReply.score', index=0,
+      name='query', full_name='cnn_model.QueryRequest.query', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -83,12 +90,52 @@ _QUERYREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=60,
-  serialized_end=87,
+  serialized_start=72,
+  serialized_end=101,
 )
 
+
+_QUERYREPLY = _descriptor.Descriptor(
+  name='QueryReply',
+  full_name='cnn_model.QueryReply',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='scorelist', full_name='cnn_model.QueryReply.scorelist', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=103,
+  serialized_end=156,
+)
+
+_QUERYREPLY.fields_by_name['scorelist'].message_type = _SCORELIST
+DESCRIPTOR.message_types_by_name['ScoreList'] = _SCORELIST
 DESCRIPTOR.message_types_by_name['QueryRequest'] = _QUERYREQUEST
 DESCRIPTOR.message_types_by_name['QueryReply'] = _QUERYREPLY
+
+ScoreList = _reflection.GeneratedProtocolMessageType('ScoreList', (_message.Message,), dict(
+  DESCRIPTOR = _SCORELIST,
+  __module__ = 'cnn_model_pb2'
+  # @@protoc_insertion_point(class_scope:cnn_model.ScoreList)
+  ))
+_sym_db.RegisterMessage(ScoreList)
 
 QueryRequest = _reflection.GeneratedProtocolMessageType('QueryRequest', (_message.Message,), dict(
   DESCRIPTOR = _QUERYREQUEST,
@@ -123,7 +170,7 @@ try:
       Args:
         channel: A grpc.Channel.
       """
-      self.ScoreCnnModel = channel.unary_unary(
+      self.ScoreCnnModel = channel.unary_stream(
           '/cnn_model.CnnModel/ScoreCnnModel',
           request_serializer=QueryRequest.SerializeToString,
           response_deserializer=QueryReply.FromString,
@@ -140,7 +187,7 @@ try:
 
   def add_CnnModelServicer_to_server(servicer, server):
     rpc_method_handlers = {
-        'ScoreCnnModel': grpc.unary_unary_rpc_method_handler(
+        'ScoreCnnModel': grpc.unary_stream_rpc_method_handler(
             servicer.ScoreCnnModel,
             request_deserializer=QueryRequest.FromString,
             response_serializer=QueryReply.SerializeToString,
@@ -169,7 +216,6 @@ try:
     only to ease transition from grpcio<0.15.0 to grpcio>=0.15.0."""
     def ScoreCnnModel(self, request, timeout, metadata=None, with_call=False, protocol_options=None):
       raise NotImplementedError()
-    ScoreCnnModel.future = None
 
 
   def beta_create_CnnModel_server(servicer, pool=None, pool_size=None, default_timeout=None, maximum_timeout=None):
@@ -185,7 +231,7 @@ try:
       ('cnn_model.CnnModel', 'ScoreCnnModel'): QueryReply.SerializeToString,
     }
     method_implementations = {
-      ('cnn_model.CnnModel', 'ScoreCnnModel'): face_utilities.unary_unary_inline(servicer.ScoreCnnModel),
+      ('cnn_model.CnnModel', 'ScoreCnnModel'): face_utilities.unary_stream_inline(servicer.ScoreCnnModel),
     }
     server_options = beta_implementations.server_options(request_deserializers=request_deserializers, response_serializers=response_serializers, thread_pool=pool, thread_pool_size=pool_size, default_timeout=default_timeout, maximum_timeout=maximum_timeout)
     return beta_implementations.server(method_implementations, options=server_options)
@@ -204,7 +250,7 @@ try:
       ('cnn_model.CnnModel', 'ScoreCnnModel'): QueryReply.FromString,
     }
     cardinalities = {
-      'ScoreCnnModel': cardinality.Cardinality.UNARY_UNARY,
+      'ScoreCnnModel': cardinality.Cardinality.UNARY_STREAM,
     }
     stub_options = beta_implementations.stub_options(host=host, metadata_transformer=metadata_transformer, request_serializers=request_serializers, response_deserializers=response_deserializers, thread_pool=pool, thread_pool_size=pool_size)
     return beta_implementations.dynamic_stub(channel, 'cnn_model.CnnModel', cardinalities, options=stub_options)
