@@ -9,7 +9,7 @@ def run():
     channel = grpc.insecure_channel('localhost:50051')
     stub = cnn_model_pb2_grpc.CnnModelStub(channel)
     for query in sys.stdin:
-        reply = stub.ScoreCnnModel(cnn_model_pb2.QueryRequest(query=query))
+        reply = stub.ScoreCnnModel(cnn_model_pb2.QueryRequest(name=query))
         print(reply.score)
 
 if __name__ == '__main__':

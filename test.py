@@ -50,12 +50,13 @@ class Pred():
                 app_b = graph.get_operation_by_name("app_b").outputs[0]
                 # input_y = graph.get_operation_by_name("input_y").outputs[0]
                 dropout_keep_prob = graph.get_operation_by_name("dropout_keep_prob").outputs[0]
-
                 # Tensors we want to evaluate
                 predictions = graph.get_operation_by_name("output/predictions").outputs[0]
                 scores = graph.get_operation_by_name("output/scores").outputs[0]
-                W_x_b = graph.get_operation_by_name("W").outputs[0]
+                W_x_b = graph.get_operation_by_name("app_b").outputs[0]
                 b = data_helpers.get_W_by_x_input(x_test, self.vocab_processor, self.words)
                 # Collect the predictions here
                 batch_predictions, score, W = sess.run([predictions, scores, W_x_b], {input_x: x_test, dropout_keep_prob: 1.0, app_b: b})
+                print(W)
+                print(score)
                 return self.words[batch_predictions[0]]

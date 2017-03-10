@@ -27,7 +27,7 @@ class TextCNN(object):
                 name="W")
             self.embedded_chars = tf.nn.embedding_lookup(self.W, self.input_x)
             self.embedded_chars_expanded = tf.expand_dims(self.embedded_chars, -1)
-
+            # [b, vocab, embedding, 1]
         # Create a convolution + maxpool layer for each filter size
         pooled_outputs = []
         for i, filter_size in enumerate(filter_sizes):
@@ -43,11 +43,12 @@ class TextCNN(object):
                     padding="VALID",
                     name="conv")
                 # Apply nonlinearity
+                # h = [b, (sequence_length - filter_size + 1), 1, embedding_size]
                 h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
                 # Maxpooling over the outputs
                 pooled = tf.nn.max_pool(
                     h,
-                    ksize=[1, sequence_length - filter_size + 1, 1, 1],
+                    ksize=[1, (sequence_length - filter_size + 1), 1, 1],
                     strides=[1, 1, 1, 1],
                     padding='VALID',
                     name="pool")
@@ -72,12 +73,14 @@ class TextCNN(object):
 
             l2_loss += tf.nn.l2_loss(W)
             l2_loss += tf.nn.l2_loss(b)
-            self.scores = tf.nn.xw_plus_b(self.input_x_b, W, b, name = "scores")
+            self.tmp = tf.nn.xw_plus_b(self.input_x_b, W, b, name="tmp")
+            self.scores = tf.nn.softmax(self.tmp, name="scores")
             self.predictions = tf.argmax(self.scores, 1, name="predictions")
 
         # CalculateMean cross-entropy loss
         with tf.name_scope("loss"):
-            losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.scores, labels=self.input_y)
+            losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.tmp, labels=self.input_y)
+            self.train_step = tf.train.AdamOptimizer(0.01).minimize(losses)
             self.loss = tf.reduce_mean(losses) + l2_reg_lambda * l2_loss
 
         # Accuracy

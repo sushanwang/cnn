@@ -23,7 +23,7 @@ import sys
 _ONE_DAY_IN_SECONDS = 3600 * 24
 
 tf.flags.DEFINE_string("mode", "pred", "train, eval, pred")
-tf.flags.DEFINE_string("checkpoint_dir", "runs/1488972761/checkpoints", "dir of the model to be restored")
+tf.flags.DEFINE_string("checkpoint_dir", "", "dir of the model to be restored")
 tf.flags.DEFINE_string("data_file", "query_app.txt", "the data file for model")
 
 tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
@@ -55,7 +55,7 @@ class CnnModelServicer(cnn_model_pb2_grpc.CnnModelServicer):
         self.predictor = test.Pred(FLAGS)
 
     def ScoreCnnModel(self, request, context):
-        query = request.query.strip()
+        query = request.name.strip()
         try:
             score = self.predictor.pred(query)
         except ValueError:

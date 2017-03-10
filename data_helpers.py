@@ -108,9 +108,15 @@ def get_W_by_x_input(x_input, vocab_processor, words):
     j = 0
     for raw in new_docs:
         for i in range(len(words)):
-            app_id = raw.count(words[i])
-            if app_id != 0:
-                W[j][i] = app_id
+            if len(words[i]) > 2:
+                for k in range(len(words[i])):
+                    app_id = raw.count(words[i][k:2+k])
+                    if app_id != 0:
+                        W[j][i] = app_id
+            else:
+                app_id = raw.count(words[i])
+                if app_id != 0:
+                    W[j][i] = app_id
         j += 1
     return W
 
