@@ -56,12 +56,15 @@ class TextCNN(object):
 
         # Combine all the pooled features
         num_filters_total = num_filters * len(filter_sizes)
+        # self.h_pool = [b, 1, 1, num_filters_total]
         self.h_pool = tf.concat(pooled_outputs, 3)
+        # self.h_pool_flat = [b, num_filters_total]
         self.h_pool_flat = tf.reshape(self.h_pool, [-1, num_filters_total])
 
         # Add dropout
         with tf.name_scope("dropout"):
             self.h_drop = tf.nn.dropout(self.h_pool_flat, self.dropout_keep_prob)
+        # self.input_x_b = [b, num_filters_total+num_classes]
             self.input_x_b = tf.concat([self.h_drop,self.app_b],1, name="input_x_b")
         # Final (unnormalized) scores and predictions
         with tf.name_scope("output"):
@@ -74,7 +77,9 @@ class TextCNN(object):
             l2_loss += tf.nn.l2_loss(W)
             l2_loss += tf.nn.l2_loss(b)
             self.tmp = tf.nn.xw_plus_b(self.input_x_b, W, b, name="tmp")
+            # self.scores = [b, num_classes]
             self.scores = tf.nn.softmax(self.tmp, name="scores")
+            # self.predictions = [b, 1]
             self.predictions = tf.argmax(self.scores, 1, name="predictions")
 
         # CalculateMean cross-entropy loss

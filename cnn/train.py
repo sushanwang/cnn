@@ -10,7 +10,6 @@ from text_cnn import TextCNN
 from tensorflow.contrib import learn
 
 
-
 class Train():
     def __init__(self,flag):
 

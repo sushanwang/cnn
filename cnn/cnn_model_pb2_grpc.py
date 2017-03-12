@@ -14,7 +14,7 @@ class CnnModelStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.ScoreCnnModel = channel.unary_unary(
+    self.ScoreCnnModel = channel.unary_stream(
         '/cnn_model.CnnModel/ScoreCnnModel',
         request_serializer=cnn__model__pb2.QueryRequest.SerializeToString,
         response_deserializer=cnn__model__pb2.QueryReply.FromString,
@@ -31,7 +31,7 @@ class CnnModelServicer(object):
 
 def add_CnnModelServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'ScoreCnnModel': grpc.unary_unary_rpc_method_handler(
+      'ScoreCnnModel': grpc.unary_stream_rpc_method_handler(
           servicer.ScoreCnnModel,
           request_deserializer=cnn__model__pb2.QueryRequest.FromString,
           response_serializer=cnn__model__pb2.QueryReply.SerializeToString,

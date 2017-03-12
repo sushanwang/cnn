@@ -48,7 +48,6 @@ def load_data_and_labels(query_file):
     return [x_text, y]
     """
 
-
     query_list = []
     app_list = []
     with open(query_file, "r") as f:
