@@ -5,7 +5,7 @@ import numpy as np
 import os
 from tensorflow.contrib import learn
 import data_helpers
-import datetime as dt
+
 
 class Pred():
 
@@ -39,35 +39,30 @@ class Pred():
             # Get the placeholders from the graph by name
             self.input_x = graph.get_operation_by_name("input_x").outputs[0]
             self.app_b = graph.get_operation_by_name("app_b").outputs[0]
-            # input_y = graph.get_operation_by_name("input_y").outputs[0]
+
             self.dropout_keep_prob = graph.get_operation_by_name("dropout_keep_prob").outputs[0]
-            # Tensors we want to evaluate
             self.predictions = graph.get_operation_by_name("output/predictions").outputs[0]
             self.scores = graph.get_operation_by_name("output/scores").outputs[0]
             self.W_x_b = graph.get_operation_by_name("app_b").outputs[0]
 
-    def pred(self, x_raw):
-        """
-        class ScoreList():
-            def __init__(self):
-                self.score = None
-                self.prob = 0.0
-        """
+    def predict(self, x_raw):
 
-        def get_N_max(score):
-            [score] = score
-            score_dict = dict(zip(range(len(score)),score))
+        def get_n_max(s):
+            [s] = s
+            score_dict = dict(zip(range(len(s)),s))
             sorted_score = sorted(score_dict.items(), key=lambda x: -x[1])
             tmp = [(self.words[id], prob) for id, prob in sorted_score[:5]]
             return tmp
+
         x_raw = x_raw.strip()
+        # x = [seq, vocab]
         x = np.array(list(self.vocab_processor.transform(x_raw)))
         x_test = np.zeros_like(x[0])
         for i in range(len(x)):
             x_test[i] = x[i][0]
         x_test = [x_test]
-
+        # x_test = [1, vocab]
         b = data_helpers.get_W_by_x_input(x_test, self.vocab_processor, self.words)
         # Collect the predictions here
         batch_predictions, score = self.sess.run([self.predictions, self.scores], {self.input_x: x_test, self.dropout_keep_prob: 1.0, self.app_b: b})
-        return get_N_max(score)
+        return get_n_max(score)

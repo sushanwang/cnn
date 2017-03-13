@@ -17,9 +17,6 @@ class Train():
         self.load_data(self.FLAGS.data_file)
 
     def load_data(self, file='query_app.txt'):
-        # Data Preparation
-        # ==================================================
-
         # Load data
         print("Loading data...")
         x_text, y, self.words = data_helpers.load_data_and_labels(file)
@@ -41,7 +38,6 @@ class Train():
         self.y_train, self.y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
         print("Vocabulary Size: {:d}".format(len(self.vocab_processor.vocabulary_)))
         print("Train/Dev split: {:d}/{:d}".format(len(self.y_train), len(self.y_dev)))
-
 
     def train(self):
 
@@ -87,7 +83,6 @@ class Train():
                 # Summaries for loss and accuracy
                 loss_summary = tf.summary.scalar("loss", cnn.loss)
                 acc_summary = tf.summary.scalar("accuracy", cnn.accuracy)
-
 
                 # Train Summaries
                 train_summary_op = tf.summary.merge([loss_summary, acc_summary, grad_summaries_merged])

@@ -13,8 +13,9 @@ class Eval():
         self.FLAGS = flag
         self.load_data(self.FLAGS.data_file)
 
+    # currently using the same data as training, just for inspecting what errors are made during training,
+    # should load new data here for real evaluation
     def load_data(self, file='query_app.txt'):
-        # CHANGE THIS: Load data. Load your own data here
         self.x_raw, self.y_test, self.words = data_helpers.load_data_and_labels(file)
         self.y_test = np.argmax(self.y_test, axis=1)
 
@@ -42,10 +43,8 @@ class Eval():
                 # Get the placeholders from the graph by name
                 input_x = graph.get_operation_by_name("input_x").outputs[0]
                 app_b = graph.get_operation_by_name("app_b").outputs[0]
-                # input_y = graph.get_operation_by_name("input_y").outputs[0]
                 dropout_keep_prob = graph.get_operation_by_name("dropout_keep_prob").outputs[0]
 
-                # Tensors we want to evaluate
                 predictions = graph.get_operation_by_name("output/predictions").outputs[0]
 
                 # Generate batches for one epoch
@@ -61,9 +60,6 @@ class Eval():
                     all_test.append(x_test_batch)
                     all_predictions = np.concatenate([all_predictions, batch_predictions])
 
-
-
-        # Print accuracy if self.y_test is defined
         if self.y_test is not None:
 
             error_list = []
