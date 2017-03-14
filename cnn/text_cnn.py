@@ -27,7 +27,7 @@ class TextCNN(object):
                 name="W")
             self.embedded_chars = tf.nn.embedding_lookup(self.W, self.input_x)
             self.embedded_chars_expanded = tf.expand_dims(self.embedded_chars, -1)
-
+            # [b, sequence_length, embedding, 1]
         # Create a convolution + maxpool layer for each filter size
         pooled_outputs = []
         for i, filter_size in enumerate(filter_sizes):
@@ -43,11 +43,12 @@ class TextCNN(object):
                     padding="VALID",
                     name="conv")
                 # Apply nonlinearity
+                # h = [b, (sequence_length - filter_size + 1), 1, embedding_size]
                 h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
                 # Maxpooling over the outputs
                 pooled = tf.nn.max_pool(
                     h,
-                    ksize=[1, sequence_length - filter_size + 1, 1, 1],
+                    ksize=[1, (sequence_length - filter_size + 1), 1, 1],
                     strides=[1, 1, 1, 1],
                     padding='VALID',
                     name="pool")
@@ -55,13 +56,16 @@ class TextCNN(object):
 
         # Combine all the pooled features
         num_filters_total = num_filters * len(filter_sizes)
+        # self.h_pool = [b, 1, 1, num_filters_total]
         self.h_pool = tf.concat(pooled_outputs, 3)
+        # self.h_pool_flat = [b, num_filters_total]
         self.h_pool_flat = tf.reshape(self.h_pool, [-1, num_filters_total])
 
         # Add dropout
         with tf.name_scope("dropout"):
             self.h_drop = tf.nn.dropout(self.h_pool_flat, self.dropout_keep_prob)
-            self.input_x_b = tf.concat([self.h_drop,self.app_b],1)
+        # self.input_x_b = [b, num_filters_total+num_classes]
+            self.input_x_b = tf.concat([self.h_drop,self.app_b],1, name="input_x_b")
         # Final (unnormalized) scores and predictions
         with tf.name_scope("output"):
             W = tf.get_variable(
@@ -72,12 +76,16 @@ class TextCNN(object):
 
             l2_loss += tf.nn.l2_loss(W)
             l2_loss += tf.nn.l2_loss(b)
-            self.scores = tf.nn.xw_plus_b(self.input_x_b, W, b, name = "scores")
+            self.logits = tf.nn.xw_plus_b(self.input_x_b, W, b, name="logits")
+            # self.scores = [b, num_classes]
+            self.scores = tf.nn.softmax(self.logits, name="scores")
+            # self.predictions = [b, 1]
             self.predictions = tf.argmax(self.scores, 1, name="predictions")
 
         # CalculateMean cross-entropy loss
         with tf.name_scope("loss"):
-            losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.scores, labels=self.input_y)
+            losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
+            self.train_step = tf.train.AdamOptimizer(0.01).minimize(losses)
             self.loss = tf.reduce_mean(losses) + l2_reg_lambda * l2_loss
 
         # Accuracy
