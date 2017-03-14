@@ -5,6 +5,7 @@ import numpy as np
 import os
 import data_helpers
 from tensorflow.contrib import learn
+import datetime as dt
 
 
 class Eval():
@@ -15,13 +16,13 @@ class Eval():
 
     # currently using the same data as training, just for inspecting what errors are made during training,
     # should load new data here for real evaluation
-    def load_data(self, file='query_app.txt'):
-        self.x_raw, self.y_test, self.words = data_helpers.load_data_and_labels(file)
+    def load_data(self, file='dataset/query_pkg.txt'):
+        self.x_raw, self.y_test, self.words, self.all_words, self.word_num_map = data_helpers.load_data_and_labels(file)
         self.y_test = np.argmax(self.y_test, axis=1)
-
         vocab_path = os.path.join(self.FLAGS.checkpoint_dir, "..", "vocab")
         self.vocab_processor = learn.preprocessing.VocabularyProcessor.restore(vocab_path)
         self.x_test = np.array(list(self.vocab_processor.transform(self.x_raw)))
+        self.app_dict = data_helpers.get_app_dict(self.vocab_processor, self.all_words)
 
     def eval(self):
         print("\nEvaluating...\n")
@@ -39,7 +40,7 @@ class Eval():
                 # Load the saved meta graph and restore variables
                 saver = tf.train.import_meta_graph("{}.meta".format(checkpoint_file))
                 saver.restore(sess, checkpoint_file)
-
+                st = dt.datetime.now()
                 # Get the placeholders from the graph by name
                 input_x = graph.get_operation_by_name("input_x").outputs[0]
                 app_b = graph.get_operation_by_name("app_b").outputs[0]
@@ -55,7 +56,7 @@ class Eval():
                 all_test = []
                 for x_test_batch in batches:
 
-                    b = data_helpers.get_W_by_x_input(x_test_batch, self.vocab_processor, self.words)
+                    b = data_helpers.get_W_by_x_input(x_test_batch, self.app_dict, self.word_num_map)
                     batch_predictions = sess.run(predictions, {input_x: x_test_batch, dropout_keep_prob: 1.0, app_b: b})
                     all_test.append(x_test_batch)
                     all_predictions = np.concatenate([all_predictions, batch_predictions])
@@ -83,3 +84,6 @@ class Eval():
             correct_predictions = float(sum(all_predictions == self.y_test))
             print("Total number of test examples: {}".format(len(self.y_test)))
             print("Accuracy: {:g}".format(correct_predictions/float(len(self.y_test))))
+            et = dt.datetime.now()
+            print(et - st)
+            print((et - st)/len(self.y_test))

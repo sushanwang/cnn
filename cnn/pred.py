@@ -16,11 +16,12 @@ class Pred():
 
     def load_data(self,file):
         # CHANGE THIS: Load data. Load your own data here
-        _, _, self.words = data_helpers.load_data_and_labels(file)
+        _, _, self.words, self.all_words, self.word_num_map = data_helpers.load_data_and_labels(file)
         self.FLAGS._parse_flags()
         # Map data into vocabulary
         vocab_path = os.path.join(self.FLAGS.checkpoint_dir, "..", "vocab")
         self.vocab_processor = learn.preprocessing.VocabularyProcessor.restore(vocab_path)
+        self.app_dict = data_helpers.get_app_dict(self.vocab_processor, self.all_words)
 
     def restore_model(self):
         checkpoint_file = tf.train.latest_checkpoint(self.FLAGS.checkpoint_dir)
@@ -62,7 +63,7 @@ class Pred():
             x_test[i] = x[i][0]
         x_test = [x_test]
         # x_test = [1, vocab]
-        b = data_helpers.get_W_by_x_input(x_test, self.vocab_processor, self.words)
+        b = data_helpers.get_W_by_x_input(x_test, self.app_dict, self.word_num_map)
         # Collect the predictions here
         batch_predictions, score = self.sess.run([self.predictions, self.scores], {self.input_x: x_test, self.dropout_keep_prob: 1.0, self.app_b: b})
         return get_n_max(score)

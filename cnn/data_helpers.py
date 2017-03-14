@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import collections
+import pickle
 
 
 # Load dataset from file
@@ -10,35 +11,39 @@ def load_data_and_labels(query_file):
     with open(query_file, "r") as f:
         for line in f:
             try:
-                query,app = line.strip().split(' | ')
+                query, app = line.strip().split(' | ')
                 query_list.append(query)
                 app_list.append(app)
 
             except Exception as e:
                 pass
 
-    print('命令总数: ', len(query_list))
-    app_ids = list(set(app_list))
-    y_max_len = len(app_ids)
-    print('app classes: ',y_max_len)
-
     all_words = [app for app in app_list]
     counter = collections.Counter(all_words)
     count_pairs = sorted(counter.items(), key=lambda x: -x[1])
-    words, _ = zip(*count_pairs)
+    new_pairs = [pair for pair in count_pairs if pair[1] > 1]
+    words, _ = zip(*new_pairs)
     word_num_map = dict(zip(words, range(len(words))))
-    vocab_size = len(words)
-    print('apps size:', (vocab_size))
+    new_query_list = []
+    new_app_list = []
+    for query, app in zip(query_list,app_list):
+        if word_num_map.get(app):
+            new_query_list.append(query)
+            new_app_list.append(app)
 
+    print('命令总数: ', len(new_query_list))
+    y_max_len = len(words)
+    print('app classes: ',y_max_len)
+    all_words = [app for app in app_list]
     app_vector = []
-    for app in app_list:
+    for app in new_app_list:
         app_vector.append(word_num_map.get(app))
     xdata = []
-    for query in query_list:
-        str = ""
+    for query in new_query_list:
+        s = ""
         for word in query:
-            str += word +" "
-        xdata.append(str.strip())
+            s += word + " "
+        xdata.append(s.strip())
     ydata = []
     id = 0
     for app in app_vector:
@@ -46,34 +51,59 @@ def load_data_and_labels(query_file):
         y_row[app] = 1
         ydata.append(y_row)
         id +=1
+
     print("data done!")
-    return xdata,np.asarray(ydata),words
+    return xdata, np.asarray(ydata), words, all_words, word_num_map
+
+
+# transform name string into name vector
+def transform_app_name_to_vector(vocab_processor, a):
+    t = [np.array(list(vocab_processor.fit_transform(a)))]
+    for a in t:
+        new_line = [line[0] for line in a]
+    return new_line
+
+
+def get_app_dict(vocab_processor, all_words):
+
+    app_dict = {}
+    with open("dataset/app_pkg.txt") as f:
+        lines = f.readlines()
+        for line in lines:
+            app, pkg = line.split(' | ')
+            if all_words.count(pkg.strip()) != 0:
+                app_vec = transform_app_name_to_vector(vocab_processor, app)
+                if app_dict.get(app_vec[0]):
+                    app_dict[app_vec[0]].append((app_vec[1:], pkg.strip()))
+                else:
+                    app_dict[app_vec[0]] = [(app_vec[1:], pkg.strip())]
+    return app_dict
 
 
 # construct app_W matrix by searching app name in query
-def get_W_by_x_input(x_input, vocab_processor, words):
-
-    W = np.zeros([len(x_input), len(words)], dtype = np.float32)
-    docs = vocab_processor.reverse(x_input)
-    new_docs = []
-    for raw in docs:
-        line = ""
-        for word in raw:
-            if word != " ":
-                line += word
-        new_docs.append(line)
+def get_W_by_x_input(x_input, app_dict, word_num_map):
+    W = np.zeros([len(x_input), len(word_num_map.values())], dtype=np.float32)
+    new_x = []
+    for x in x_input:
+        t = []
+        for a in x:
+            if a != 0:
+                t.append(a)
+        new_x.append(t)
     j = 0
-    for raw in new_docs:
-        for i in range(len(words)):
-            if len(words[i]) > 2:
-                for k in range(len(words[i])):
-                    app_id = raw.count(words[i][k:2+k])
-                    if app_id != 0:
-                        W[j][i] = app_id
-            else:
-                app_id = raw.count(words[i])
-                if app_id != 0:
-                    W[j][i] = app_id
+    for query in new_x:
+        added_app = []
+        for i in range(len(query)):
+            if app_dict.get(query[i]):
+                l = app_dict.get(query[i])
+                for vec, name in l:
+                    if vec == query[i+1:i+1+len(vec)]:
+                        W[j][word_num_map.get(name.strip())] = 1
+                        added_app.append((vec, name))
+        for k in range(len(added_app)):
+            for ii in range(len(added_app)):
+                if len(set(added_app[ii][0]).difference(added_app[k][0])) == 0 and k != ii:
+                    W[j][word_num_map.get(added_app[ii][1])] = 0
         j += 1
     return W
 
