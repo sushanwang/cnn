@@ -90,6 +90,9 @@ class Train():
                 saver = tf.train.Saver(tf.global_variables(), max_to_keep=self.FLAGS.num_checkpoints)
                 # Write vocabulary
                 self.vocab_processor.save(os.path.join(out_dir, "vocab"))
+                data_helpers.save_obj(self.words, out_dir, "words")
+                data_helpers.save_obj(self.all_words, out_dir, "all_words")
+                data_helpers.save_obj(self.word_num_map, out_dir, "word_num_map")
                 # Initialize all variables
                 sess.run(tf.global_variables_initializer())
 

@@ -4,6 +4,16 @@ import collections
 import pickle
 
 
+def save_obj(obj, dir, name):
+    with open(dir + '/' + name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, 2)
+
+
+def load_obj(dir, name):
+    with open(dir + '/' + name + '.pkl', 'rb') as f:
+        return pickle.load(f)
+
+
 # Load dataset from file
 def load_data_and_labels(query_file):
     query_list = []

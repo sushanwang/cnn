@@ -17,7 +17,11 @@ class Eval():
     # currently using the same data as training, just for inspecting what errors are made during training,
     # should load new data here for real evaluation
     def load_data(self, file='dataset/query_pkg.txt'):
-        self.x_raw, self.y_test, self.words, self.all_words, self.word_num_map = data_helpers.load_data_and_labels(file)
+        path = os.path.join(self.FLAGS.checkpoint_dir, "..")
+        self.words = data_helpers.load_obj(path,"words")
+        self.all_words = data_helpers.load_obj(path,"all_words")
+        self.word_num_map = data_helpers.load_obj(path,"word_num_map")
+        self.x_raw, self.y_test, _, _, _ = data_helpers.load_data_and_labels(file)
         self.y_test = np.argmax(self.y_test, axis=1)
         vocab_path = os.path.join(self.FLAGS.checkpoint_dir, "..", "vocab")
         self.vocab_processor = learn.preprocessing.VocabularyProcessor.restore(vocab_path)

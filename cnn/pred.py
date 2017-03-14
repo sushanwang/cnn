@@ -16,7 +16,10 @@ class Pred():
 
     def load_data(self,file):
         # CHANGE THIS: Load data. Load your own data here
-        _, _, self.words, self.all_words, self.word_num_map = data_helpers.load_data_and_labels(file)
+        path = os.path.join(self.FLAGS.checkpoint_dir, "..")
+        self.words = data_helpers.load_obj(path,"words")
+        self.all_words = data_helpers.load_obj(path,"all_words")
+        self.word_num_map = data_helpers.load_obj(path,"word_num_map")
         self.FLAGS._parse_flags()
         # Map data into vocabulary
         vocab_path = os.path.join(self.FLAGS.checkpoint_dir, "..", "vocab")
