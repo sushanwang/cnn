@@ -111,7 +111,6 @@ class Train():
                         [train_op, global_step, train_summary_op, cnn.loss, cnn.accuracy, cnn.scores,cnn.input_y],
                         feed_dict)
                     time_str = datetime.datetime.now().isoformat()
-
                     print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
                     train_summary_writer.add_summary(summaries, step)
 
@@ -133,11 +132,9 @@ class Train():
                     print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
                     if writer:
                         writer.add_summary(summaries, step)
-
                 # Generate batches
                 batches = data_helpers.batch_iter(
                     list(zip(self.x_train, self.y_train)), self.FLAGS.batch_size, self.FLAGS.num_epochs)
-
                 # Training loop. For each batch...
                 for batch in batches:
                     x_batch, y_batch = zip(*batch)

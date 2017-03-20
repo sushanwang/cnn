@@ -10,7 +10,6 @@ import data_helpers
 class Pred():
 
     def __init__(self,flag):
-
         self.FLAGS = flag
         self.load_data(self.FLAGS.data_file)
 
@@ -50,14 +49,13 @@ class Pred():
             self.W_x_b = graph.get_operation_by_name("app_b").outputs[0]
 
     def predict(self, x_raw):
-
         def get_n_max(s):
             [s] = s
             score_dict = dict(zip(range(len(s)),s))
             sorted_score = sorted(score_dict.items(), key=lambda x: -x[1])
             tmp = [(self.words[id], prob) for id, prob in sorted_score[:5]]
             return tmp
-
+        x_raw = x_raw.replace(" ", "")
         x_raw = x_raw.strip()
         # x = [seq, vocab]
         x = np.array(list(self.vocab_processor.transform(x_raw)))

@@ -24,10 +24,8 @@ def load_data_and_labels(query_file):
                 query, app = line.strip().split(' | ')
                 query_list.append(query)
                 app_list.append(app)
-
             except Exception as e:
                 pass
-
     all_words = [app for app in app_list]
     counter = collections.Counter(all_words)
     count_pairs = sorted(counter.items(), key=lambda x: -x[1])
@@ -40,7 +38,6 @@ def load_data_and_labels(query_file):
         if word_num_map.get(app):
             new_query_list.append(query)
             new_app_list.append(app)
-
     print('命令总数: ', len(new_query_list))
     y_max_len = len(words)
     print('app classes: ',y_max_len)
@@ -55,15 +52,41 @@ def load_data_and_labels(query_file):
             s += word + " "
         xdata.append(s.strip())
     ydata = []
-    id = 0
     for app in app_vector:
         y_row = np.zeros([y_max_len])
         y_row[app] = 1
         ydata.append(y_row)
-        id +=1
-
     print("data done!")
     return xdata, np.asarray(ydata), words, all_words, word_num_map
+
+
+def load_eval_data(query_file, words, word_num_map):
+    query_list = []
+    app_list = []
+    print(query_file)
+    with open(query_file, "r") as f:
+        for line in f:
+            try:
+                query, app = line.strip().split(' | ')
+                query_list.append(query)
+                app_list.append(app)
+
+            except Exception as e:
+                pass
+    y_max_len = len(words)
+    xdata = []
+    ydata = []
+    for query, app in zip(query_list,app_list):
+        if word_num_map.get(app):
+            s = ""
+            for word in query:
+                s += word + " "
+            xdata.append(s.strip())
+            y_row = np.zeros([y_max_len])
+            y_row[word_num_map.get(app)] = 1
+            ydata.append(y_row)
+    print("data done!")
+    return xdata, np.asarray(ydata)
 
 
 # transform name string into name vector

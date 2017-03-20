@@ -11,7 +11,7 @@ def get_flags():
     # ==================================================
 
     tf.flags.DEFINE_string("mode", "train", "train, eval, pred, pred_with_data")
-    tf.flags.DEFINE_string("data_file", "dataset/query_pkg.txt", "the data file for model")
+    tf.flags.DEFINE_string("data_file", "dataset/query_pkg_test.txt", "the data file for model")
     tf.flags.DEFINE_string("checkpoint_dir", "", "dir of the model to be restored")
 
     tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
