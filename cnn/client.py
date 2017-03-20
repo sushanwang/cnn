@@ -11,8 +11,8 @@ def run():
     for query in sys.stdin:
         result = cnn_model_pb2.QueryRequest(query=query)
         replies = stub.ScoreCnnModel(result)
-        for reply in replies:
-            print("the app name is %s with prob %.6f" % (reply.scorelist.query, reply.scorelist.prob))
+        for app, prob in zip(replies.app, replies.prob):
+            print("the app pkg is %s with prob %.6f" % (app, prob))
 
 
 if __name__ == '__main__':

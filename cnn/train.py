@@ -12,27 +12,24 @@ from tensorflow.contrib import learn
 
 class Train():
     def __init__(self,flag):
-
         self.FLAGS = flag
         self.load_data(self.FLAGS.data_file)
 
-    def load_data(self, file='query_app.txt'):
+    def load_data(self, file='dataset/query_pkg.txt'):
         # Load data
         print("Loading data...")
-        x_text, y, self.words = data_helpers.load_data_and_labels(file)
+        x_text, y, self.words, self.all_words, self.word_num_map = data_helpers.load_data_and_labels(file)
         # Build vocabulary
         max_document_length = max([len(x) for x in x_text])
         self.vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
         x = np.array(list(self.vocab_processor.fit_transform(x_text)))
-
+        self.app_dict = data_helpers.get_app_dict(self.vocab_processor, self.all_words)
         # Randomly shuffle data
         np.random.seed(10)
         shuffle_indices = np.random.permutation(np.arange(len(y)))
         x_shuffled = x[shuffle_indices]
         y_shuffled = y[shuffle_indices]
-
         # Split train/test set
-        # TODO: This is very crude, should use cross-validation
         dev_sample_index = -1 * int(self.FLAGS.dev_sample_percentage * float(len(y)))
         self.x_train, self.x_dev = x_shuffled[:dev_sample_index], x_shuffled[dev_sample_index:]
         self.y_train, self.y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
@@ -40,10 +37,8 @@ class Train():
         print("Train/Dev split: {:d}/{:d}".format(len(self.y_train), len(self.y_dev)))
 
     def train(self):
-
         # Training
         # ==================================================
-
         with tf.Graph().as_default():
             session_conf = tf.ConfigProto(
               allow_soft_placement=self.FLAGS.allow_soft_placement,
@@ -58,13 +53,11 @@ class Train():
                     filter_sizes=list(map(int, self.FLAGS.filter_sizes.split(","))),
                     num_filters=self.FLAGS.num_filters,
                     l2_reg_lambda=self.FLAGS.l2_reg_lambda)
-
                 # Define Training procedure
                 global_step = tf.Variable(0, name="global_step", trainable=False)
                 optimizer = tf.train.AdamOptimizer(1e-3)
                 grads_and_vars = optimizer.compute_gradients(cnn.loss)
                 train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
-
                 # Keep track of gradient values and sparsity (optional)
                 grad_summaries = []
                 for g, v in grads_and_vars:
@@ -74,36 +67,32 @@ class Train():
                         grad_summaries.append(grad_hist_summary)
                         grad_summaries.append(sparsity_summary)
                 grad_summaries_merged = tf.summary.merge(grad_summaries)
-
                 # Output directory for models and summaries
                 timestamp = str(int(time.time()))
                 out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", timestamp))
                 print("Writing to {}\n".format(out_dir))
-
                 # Summaries for loss and accuracy
                 loss_summary = tf.summary.scalar("loss", cnn.loss)
                 acc_summary = tf.summary.scalar("accuracy", cnn.accuracy)
-
                 # Train Summaries
                 train_summary_op = tf.summary.merge([loss_summary, acc_summary, grad_summaries_merged])
                 train_summary_dir = os.path.join(out_dir, "summaries", "train")
                 train_summary_writer = tf.summary.FileWriter(train_summary_dir, sess.graph)
-
                 # Dev summaries
                 dev_summary_op = tf.summary.merge([loss_summary, acc_summary])
                 dev_summary_dir = os.path.join(out_dir, "summaries", "dev")
                 dev_summary_writer = tf.summary.FileWriter(dev_summary_dir, sess.graph)
-
                 # Checkpoint directory. Tensorflow assumes this directory already exists so we need to create it
                 checkpoint_dir = os.path.abspath(os.path.join(out_dir, "checkpoints"))
                 checkpoint_prefix = os.path.join(checkpoint_dir, "model")
                 if not os.path.exists(checkpoint_dir):
                     os.makedirs(checkpoint_dir)
                 saver = tf.train.Saver(tf.global_variables(), max_to_keep=self.FLAGS.num_checkpoints)
-
                 # Write vocabulary
                 self.vocab_processor.save(os.path.join(out_dir, "vocab"))
-
+                data_helpers.save_obj(self.words, out_dir, "words")
+                data_helpers.save_obj(self.all_words, out_dir, "all_words")
+                data_helpers.save_obj(self.word_num_map, out_dir, "word_num_map")
                 # Initialize all variables
                 sess.run(tf.global_variables_initializer())
 
@@ -111,7 +100,7 @@ class Train():
                     """
                     A single training step
                     """
-                    app_b = data_helpers.get_W_by_x_input(x_batch, self.vocab_processor, self.words)
+                    app_b = data_helpers.get_W_by_x_input(x_batch, self.app_dict, self.word_num_map)
                     feed_dict = {
                       cnn.input_x: x_batch,
                       cnn.input_y: y_batch,
@@ -122,7 +111,6 @@ class Train():
                         [train_op, global_step, train_summary_op, cnn.loss, cnn.accuracy, cnn.scores,cnn.input_y],
                         feed_dict)
                     time_str = datetime.datetime.now().isoformat()
-
                     print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
                     train_summary_writer.add_summary(summaries, step)
 
@@ -130,7 +118,7 @@ class Train():
                     """
                     Evaluates model on a dev set
                     """
-                    app_b = data_helpers.get_W_by_x_input(x_batch, self.vocab_processor, self.words)
+                    app_b = data_helpers.get_W_by_x_input(x_batch, self.app_dict, self.word_num_map)
                     feed_dict = {
                       cnn.input_x: x_batch,
                       cnn.input_y: y_batch,
@@ -144,11 +132,9 @@ class Train():
                     print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
                     if writer:
                         writer.add_summary(summaries, step)
-
                 # Generate batches
                 batches = data_helpers.batch_iter(
                     list(zip(self.x_train, self.y_train)), self.FLAGS.batch_size, self.FLAGS.num_epochs)
-
                 # Training loop. For each batch...
                 for batch in batches:
                     x_batch, y_batch = zip(*batch)

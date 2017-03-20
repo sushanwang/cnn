@@ -23,25 +23,26 @@ class CnnModelServicer(cnn_model_pb2_grpc.CnnModelServicer):
 
     def ScoreCnnModel(self, request, context):
         query = request.query.strip()
+        print(query)
+        print("******************")
         score = self.predictor.predict(query)
+        app_list = []
+        prob_list = []
         for app,prob in score:
-            sl = cnn_model_pb2.ScoreList()
-            sl.query = app
-            sl.prob = prob
-            yield cnn_model_pb2.QueryReply(scorelist=sl)
+            app_list.append(app)
+            prob_list.append(prob)
+        return cnn_model_pb2.QueryReply(app=app_list, prob=prob_list)
 
 
 def serve():
-
     if FLAGS.mode == "train":
-
         if not FLAGS.data_file:
             print('train_data is required to be provided to train model')
             sys.exit(-1)
         train = Train(FLAGS)
         train.train()
-    if FLAGS.mode == "eval":
 
+    if FLAGS.mode == "eval":
         if not FLAGS.data_file:
             print('valid_data is required to be provided to valid model')
             sys.exit(-1)
@@ -51,11 +52,9 @@ def serve():
 
     if FLAGS.mode == "pred":
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-
         cnn_model_pb2_grpc.add_CnnModelServicer_to_server(
             CnnModelServicer(), server)
-
-        server.add_insecure_port('[::]:50051')
+        server.add_insecure_port('localhost:50051')
         server.start()
         try:
             while True:

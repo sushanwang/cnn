@@ -10,8 +10,8 @@ def get_flags():
     # Parameters
     # ==================================================
 
-    tf.flags.DEFINE_string("mode", "train", "train, eval, pred")
-    tf.flags.DEFINE_string("data_file", "query_app.txt", "the data file for model")
+    tf.flags.DEFINE_string("mode", "train", "train, eval, pred, pred_with_data")
+    tf.flags.DEFINE_string("data_file", "dataset/query_pkg_test.txt", "the data file for model")
     tf.flags.DEFINE_string("checkpoint_dir", "", "dir of the model to be restored")
 
     tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
@@ -53,7 +53,6 @@ def main():
             print('valid_data is required to be provided to valid model')
             sys.exit(-1)
         eval = Eval(FLAGS)
-        eval.load_data(FLAGS.data_file)
         eval.eval()
     elif FLAGS.mode == 'pred':
         if not FLAGS.data_file:
@@ -66,10 +65,29 @@ def main():
             try:
                 score = pred.predict(line)
                 for app,prob in score:
-                    print("the app name is %s with prob %.6f" % (app, prob))
+                    print("the app pkg is %s with prob %.6f" % (app, prob))
             except ValueError as v:
                 print(v)
                 continue
+    elif FLAGS.mode == 'pred_with_data':
+        if not FLAGS.data_file:
+            print('valid_data is required to be provided to valid model')
+            sys.exit(-1)
+        pred = Pred(FLAGS)
+        pred.restore_model()
+        with open("dataset/test_data.txt") as f:
+            lines = f.readlines()
+            for line in lines:
+                line = line.strip()
+                try:
+                    score = pred.predict(line)
+                    print(line)
+                    for app,prob in score:
+                        print("the app pkg is %s with prob %.6f" % (app, prob))
+                except ValueError as v:
+                    print(v)
+                    continue
+                print("********************")
     else:
         raise ValueError('Mode not recognized: ' + FLAGS.mode)
 
