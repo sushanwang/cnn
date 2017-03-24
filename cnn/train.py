@@ -53,9 +53,15 @@ class Train():
                     filter_sizes=list(map(int, self.FLAGS.filter_sizes.split(","))),
                     num_filters=self.FLAGS.num_filters,
                     l2_reg_lambda=self.FLAGS.l2_reg_lambda)
+                tf.add_to_collection('model', cnn.input_x)
+                tf.add_to_collection('model', cnn.input_y)
+                tf.add_to_collection('model', cnn.app_b)
+                tf.add_to_collection('model', cnn.dropout_keep_prob)
+                tf.add_to_collection('model', cnn.predictions)
+                tf.add_to_collection('model', cnn.scores)
                 # Define Training procedure
                 global_step = tf.Variable(0, name="global_step", trainable=False)
-                optimizer = tf.train.AdamOptimizer(1e-3)
+                optimizer = tf.train.GradientDescentOptimizer(0.1)
                 grads_and_vars = optimizer.compute_gradients(cnn.loss)
                 train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
                 # Keep track of gradient values and sparsity (optional)
@@ -87,12 +93,21 @@ class Train():
                 checkpoint_prefix = os.path.join(checkpoint_dir, "model")
                 if not os.path.exists(checkpoint_dir):
                     os.makedirs(checkpoint_dir)
+                tf.add_to_collection("saver", train_summary_writer)
+                tf.add_to_collection("saver", checkpoint_prefix)
                 saver = tf.train.Saver(tf.global_variables(), max_to_keep=self.FLAGS.num_checkpoints)
                 # Write vocabulary
                 self.vocab_processor.save(os.path.join(out_dir, "vocab"))
                 data_helpers.save_obj(self.words, out_dir, "words")
                 data_helpers.save_obj(self.all_words, out_dir, "all_words")
                 data_helpers.save_obj(self.word_num_map, out_dir, "word_num_map")
+                tf.add_to_collection('cnn', train_op)
+                tf.add_to_collection('cnn', global_step)
+                tf.add_to_collection('cnn', train_summary_op)
+                tf.add_to_collection('cnn', cnn.loss)
+                tf.add_to_collection('cnn', cnn.accuracy)
+                tf.add_to_collection('cnn', cnn.scores)
+                tf.add_to_collection('cnn', cnn.input_y)
                 # Initialize all variables
                 sess.run(tf.global_variables_initializer())
 
