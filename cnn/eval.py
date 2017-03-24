@@ -53,12 +53,10 @@ class Eval():
             res.close()
             print("************")
             print(correct_list)
-            for e in correct_list:
-                print(e)
+            print(e for e in correct_list)
             print(len(correct_list))
             print("**************")
-            for e in error_list:
-                print(e)
+            print(e for e in error_list)
             print(len(error_list))
             correct_predictions = float(sum(all_predictions == self.y_test))
             print("Total number of test examples: {}".format(len(self.y_test)))
