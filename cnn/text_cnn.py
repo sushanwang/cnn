@@ -16,10 +16,8 @@ class TextCNN(object):
         self.input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
         self.app_b = tf.placeholder(tf.float32, [None, num_classes], name="app_b")
-
         # Keeping track of l2 regularization loss (optional)
         l2_loss = tf.constant(0.0)
-
         # Embedding layer
         with tf.device('/cpu:0'), tf.name_scope("embedding"):
             self.W = tf.Variable(
@@ -73,7 +71,6 @@ class TextCNN(object):
                 shape=[num_filters_total+num_classes, num_classes],
                 initializer=tf.contrib.layers.xavier_initializer())
             b = tf.Variable(tf.constant(0.1, shape=[num_classes]), name="b")
-
             l2_loss += tf.nn.l2_loss(W)
             l2_loss += tf.nn.l2_loss(b)
             self.logits = tf.nn.xw_plus_b(self.input_x_b, W, b, name="logits")
@@ -85,7 +82,6 @@ class TextCNN(object):
         # CalculateMean cross-entropy loss
         with tf.name_scope("loss"):
             losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
-            self.train_step = tf.train.AdamOptimizer(0.01).minimize(losses)
             self.loss = tf.reduce_mean(losses) + l2_reg_lambda * l2_loss
 
         # Accuracy

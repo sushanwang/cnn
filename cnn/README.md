@@ -28,3 +28,9 @@ Replace the checkpoint dir with the output from the training.
 python server.py --mode pred --checkpoint_dir runs/1489373362/checkpoints/
 ```
 Replace the checkpoint dir with the output from the training.
+
+## Learning
+
+```bash
+python server.py --mode learn --checkpoint_dir runs/1489373362/checkpoints/
+```

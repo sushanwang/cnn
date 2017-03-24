@@ -54,7 +54,7 @@ def serve():
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         cnn_model_pb2_grpc.add_CnnModelServicer_to_server(
             CnnModelServicer(), server)
-        server.add_insecure_port('localhost:50051')
+        server.add_insecure_port(FLAGS.server_address)
         server.start()
         try:
             while True:

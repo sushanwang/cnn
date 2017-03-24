@@ -11,42 +11,19 @@ class Pred():
 
     def __init__(self,flag):
         self.FLAGS = flag
-        self.load_data(self.FLAGS.data_file)
-
-    def load_data(self,file):
-        # CHANGE THIS: Load data. Load your own data here
-        path = os.path.join(self.FLAGS.checkpoint_dir, "..")
-        self.words = data_helpers.load_obj(path,"words")
-        self.all_words = data_helpers.load_obj(path,"all_words")
-        self.word_num_map = data_helpers.load_obj(path,"word_num_map")
-        self.FLAGS._parse_flags()
-        # Map data into vocabulary
-        vocab_path = os.path.join(self.FLAGS.checkpoint_dir, "..", "vocab")
-        self.vocab_processor = learn.preprocessing.VocabularyProcessor.restore(vocab_path)
-        self.app_dict = data_helpers.get_app_dict(self.vocab_processor, self.all_words)
-
-    def restore_model(self):
+        self.words, self.word_num_map, \
+            self.vocab_processor, self.app_dict = data_helpers.load_support_dict(self.FLAGS.checkpoint_dir)
         checkpoint_file = tf.train.latest_checkpoint(self.FLAGS.checkpoint_dir)
-        graph = tf.Graph()
-        with graph.as_default():
-            session_conf = tf.ConfigProto(
-              allow_soft_placement=self.FLAGS.allow_soft_placement,
-              log_device_placement=self.FLAGS.log_device_placement)
-            self.sess = tf.Session(config=session_conf)
-            self.sess.as_default()
-
-            # Load the saved meta graph and restore variables
-            saver = tf.train.import_meta_graph("{}.meta".format(checkpoint_file))
-            saver.restore(self.sess, checkpoint_file)
-
-            # Get the placeholders from the graph by name
-            self.input_x = graph.get_operation_by_name("input_x").outputs[0]
-            self.app_b = graph.get_operation_by_name("app_b").outputs[0]
-
-            self.dropout_keep_prob = graph.get_operation_by_name("dropout_keep_prob").outputs[0]
-            self.predictions = graph.get_operation_by_name("output/predictions").outputs[0]
-            self.scores = graph.get_operation_by_name("output/scores").outputs[0]
-            self.W_x_b = graph.get_operation_by_name("app_b").outputs[0]
+        session_conf = tf.ConfigProto(
+          allow_soft_placement=self.FLAGS.allow_soft_placement,
+          log_device_placement=self.FLAGS.log_device_placement)
+        self.sess = tf.Session(config=session_conf)
+        self.sess.as_default()
+        # Load the saved meta graph and restore variables
+        saver = tf.train.import_meta_graph("{}.meta".format(checkpoint_file))
+        saver.restore(self.sess, checkpoint_file)
+        self.input_x, _, self.app_b, self.dropout_keep_prob,\
+            self.predictions, self.scores = tf.get_collection('model')
 
     def predict(self, x_raw):
         def get_n_max(s):

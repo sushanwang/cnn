@@ -2,6 +2,8 @@
 import numpy as np
 import collections
 import pickle
+import os
+from tensorflow.contrib import learn
 
 
 def save_obj(obj, dir, name):
@@ -159,3 +161,16 @@ def batch_iter(data, batch_size, num_epochs, shuffle=True):
             start_index = batch_num * batch_size
             end_index = min((batch_num + 1) * batch_size, data_size)
             yield shuffled_data[start_index:end_index]
+
+
+def load_support_dict(checkpoint_dir):
+    # CHANGE THIS: Load data. Load your own data here
+    path = os.path.join(checkpoint_dir, "..")
+    words = load_obj(path,"words")
+    all_words = load_obj(path,"all_words")
+    word_num_map = load_obj(path,"word_num_map")
+    # Map data into vocabulary
+    vocab_path = os.path.join(checkpoint_dir, "..", "vocab")
+    vocab_processor = learn.preprocessing.VocabularyProcessor.restore(vocab_path)
+    app_dict = get_app_dict(vocab_processor, all_words)
+    return words, word_num_map, vocab_processor, app_dict
