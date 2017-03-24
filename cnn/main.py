@@ -3,6 +3,7 @@ import tensorflow as tf
 from train import Train
 from eval import Eval
 from pred import Pred
+from learn import Learn
 
 
 def get_flags():
@@ -11,15 +12,15 @@ def get_flags():
     # ==================================================
 
     tf.flags.DEFINE_string("mode", "train", "train, eval, pred, pred_with_data")
-    tf.flags.DEFINE_string("data_file", "dataset/query_pkg_test.txt", "the data file for model")
+    tf.flags.DEFINE_string("data_file", "dataset/query_pkg.txt", "the data file for model")
     tf.flags.DEFINE_string("checkpoint_dir", "", "dir of the model to be restored")
 
     tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
 
-    tf.flags.DEFINE_integer("embedding_dim", 128, "Dimensionality of character embedding (default: 128)")
-    tf.flags.DEFINE_string("filter_sizes", "2,3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
-    tf.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
-    tf.flags.DEFINE_float("dropout_keep_prob", 0.8, "Dropout keep probability (default: 0.5)")
+    tf.flags.DEFINE_integer("embedding_dim", 20, "Dimensionality of character embedding (default: 128)")
+    tf.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
+    tf.flags.DEFINE_integer("num_filters", 20, "Number of filters per filter size (default: 128)")
+    tf.flags.DEFINE_float("dropout_keep_prob", 0.5, "Dropout keep probability (default: 0.5)")
     tf.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 0.0)")
 
     tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
@@ -59,7 +60,6 @@ def main():
             print('valid_data is required to be provided to valid model')
             sys.exit(-1)
         pred = Pred(FLAGS)
-        pred.restore_model()
         for line in sys.stdin:
             line = line.strip()
             try:
@@ -74,7 +74,6 @@ def main():
             print('valid_data is required to be provided to valid model')
             sys.exit(-1)
         pred = Pred(FLAGS)
-        pred.restore_model()
         with open("dataset/test_data.txt") as f:
             lines = f.readlines()
             for line in lines:
@@ -88,6 +87,11 @@ def main():
                     print(v)
                     continue
                 print("********************")
+    elif FLAGS.mode == 'learn':
+        learn = Learn(FLAGS)
+        for line in sys.stdin:
+            query, pkg, num = line.strip().split()
+            learn.learn(query, pkg, int(num))
     else:
         raise ValueError('Mode not recognized: ' + FLAGS.mode)
 
