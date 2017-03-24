@@ -39,7 +39,6 @@ class Eval():
             batch_predictions = self.sess.run(predictions, {input_x: x_test_batch, dropout_keep_prob: 1.0, app_b: b})
             all_test.append(x_test_batch)
             all_predictions = np.concatenate([all_predictions, batch_predictions])
-
         if self.y_test is not None:
             error_list = []
             correct_list = []

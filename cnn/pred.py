@@ -19,7 +19,8 @@ class Pred():
         # Load the saved meta graph and restore variables
         saver = tf.train.import_meta_graph("{}.meta".format(checkpoint_file))
         saver.restore(self.sess, checkpoint_file)
-        self.input_x, self.app_b, self.dropout_keep_prob, self.predictions, self.scores, self.W_x_b = tf.get_collection('model')
+        self.input_x, _, self.app_b, self.dropout_keep_prob,\
+            self.predictions, self.scores = tf.get_collection('model')
 
     def predict(self, x_raw):
         def get_n_max(s):

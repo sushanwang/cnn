@@ -59,7 +59,6 @@ class Train():
                 tf.add_to_collection('model', cnn.dropout_keep_prob)
                 tf.add_to_collection('model', cnn.predictions)
                 tf.add_to_collection('model', cnn.scores)
-                print("tf.get_collection('model')",tf.get_collection('model'))
                 # Define Training procedure
                 global_step = tf.Variable(0, name="global_step", trainable=False)
                 optimizer = tf.train.GradientDescentOptimizer(0.1)

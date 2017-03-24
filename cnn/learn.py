@@ -4,6 +4,8 @@ import tensorflow as tf
 import numpy as np
 import data_helpers
 import datetime
+import os
+import time
 
 
 class Learn():
@@ -53,13 +55,23 @@ class Learn():
             y_row[self.word_num_map.get(y_raw)] = 1
         y_batch = [y_row] * num
         all_vars = tf.get_collection('cnn')
+        # Output directory for models and summaries
+        timestamp = str(int(time.time()))
+        out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", timestamp))
+        print("Writing to {}\n".format(out_dir))
+        train_summary_dir = os.path.join(out_dir, "summaries", "train")
+        train_summary_writer = tf.summary.FileWriter(train_summary_dir, self.sess.graph)
         saver = tf.train.Saver(tf.global_variables(), max_to_keep=self.FLAGS.num_checkpoints)
-        global_step = all_vars[1]
+        global_step = all_vars[-6]
         # Checkpoint directory. Tensorflow assumes this directory already exists so we need to create it
-        train_summary_writer, checkpoint_prefix = tf.get_collection("saver")
+        checkpoint_dir = os.path.abspath(os.path.join(out_dir, "checkpoints"))
+        checkpoint_prefix = os.path.join(checkpoint_dir, "model")
+        if not os.path.exists(checkpoint_dir):
+            os.makedirs(checkpoint_dir)
         for i in range(self.FLAGS.num_epochs):
             current_step = tf.train.global_step(self.sess, global_step)
-            self.train_step(x_batch, y_batch, all_vars, train_summary_writer)
+            self.train_step(x_batch, y_batch, all_vars[len(all_vars)-7:], train_summary_writer)
+
         path = saver.save(self.sess, checkpoint_prefix, global_step=current_step)
         print("Saved model checkpoint to {}\n".format(path))
         # x_test = [1, vocab]
