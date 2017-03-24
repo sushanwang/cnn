@@ -2,13 +2,10 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 import numpy as np
-import os
-from tensorflow.contrib import learn
 import data_helpers
 
 
 class Pred():
-
     def __init__(self,flag):
         self.FLAGS = flag
         self.words, self.word_num_map, \
